@@ -10,15 +10,9 @@ const cursor = document.querySelector('.cursor');
 const cursorFollower = document.querySelector('.cursor-follower');
 
 // Clock elements
-const clockHours = document.getElementById('clock-hours');
-const clockMinutes = document.getElementById('clock-minutes');
-const clockSeconds = document.getElementById('clock-seconds');
-const clockDate = document.getElementById('clock-date');
-
-// Previous clock values for flip animation
-let prevClockSeconds = '00';
-let prevClockMinutes = '00';
-let prevClockHours = '00';
+const timeDisplay = document.getElementById('timeDisplay');
+const dateDisplay = document.getElementById('dateDisplay');
+const clockParticles = document.getElementById('clockParticles');
 
 // Screen elements
 const welcomeScreen = document.getElementById('welcomeScreen');
@@ -235,46 +229,47 @@ function animateParticles() {
 animateParticles();
 
 // ===========================================
-// DIGITAL CLOCK WITH ANIMATIONS
+// DIGITAL CLOCK WITH PREMIUM ANIMATIONS
 // ===========================================
 function updateDigitalClock() {
     const now = new Date();
-
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const seconds = String(now.getSeconds()).padStart(2, '0');
 
-    // Apply flip animation when values change
-    if (seconds !== prevClockSeconds && clockSeconds) {
-        clockSeconds.classList.add('flip-animation');
-        setTimeout(() => clockSeconds.classList.remove('flip-animation'), 400);
-        prevClockSeconds = seconds;
-        clockSeconds.textContent = seconds;
+    if (timeDisplay) {
+        timeDisplay.textContent = `${hours}:${minutes}:${seconds}`;
     }
 
-    if (minutes !== prevClockMinutes && clockMinutes) {
-        clockMinutes.classList.add('flip-animation');
-        setTimeout(() => clockMinutes.classList.remove('flip-animation'), 400);
-        prevClockMinutes = minutes;
-        clockMinutes.textContent = minutes;
-    }
-
-    if (hours !== prevClockHours && clockHours) {
-        clockHours.classList.add('flip-animation');
-        setTimeout(() => clockHours.classList.remove('flip-animation'), 400);
-        prevClockHours = hours;
-        clockHours.textContent = hours;
-    }
-
-    // Update date
-    if (clockDate) {
+    if (dateDisplay) {
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        clockDate.textContent = now.toLocaleDateString('en-US', options);
+        dateDisplay.textContent = now.toLocaleDateString('en-US', options).toUpperCase();
+    }
+}
+
+function initClockParticles() {
+    if (!clockParticles) return;
+
+    for (let i = 0; i < 8; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'clock-particle';
+
+        const angle = (i / 8) * Math.PI * 2;
+        const distance = 60;
+        const x = Math.cos(angle) * distance;
+        const y = Math.sin(angle) * distance;
+
+        particle.style.setProperty('--x', `${x}px`);
+        particle.style.setProperty('--y', `${y}px`);
+        particle.style.animationDelay = `${i * 0.5}s`;
+
+        clockParticles.appendChild(particle);
     }
 }
 
 function startDigitalClock() {
     updateDigitalClock();
+    initClockParticles();
     clockInterval = setInterval(updateDigitalClock, 1000);
 }
 
@@ -286,34 +281,26 @@ function stopDigitalClock() {
 }
 
 // ===========================================
-// ADVANCED PARALLAX MOUSE TRACKING
+// FLOATING ORBS PARALLAX
 // ===========================================
 let parallaxActive = false;
 
-function initParallax() {
-    const activityScreenEl = document.getElementById('activityScreen');
-    const blobs = document.querySelectorAll('.blob');
-    const gridBg = document.querySelector('.grid-background');
+function initFloatingOrbs() {
+    const orbs = document.querySelectorAll('.floating-orb');
 
-    activityScreenEl.addEventListener('mousemove', (e) => {
+    document.addEventListener('mousemove', (e) => {
         if (!parallaxActive) return;
 
         const x = e.clientX / window.innerWidth;
         const y = e.clientY / window.innerHeight;
 
-        const moveX = (x - 0.5) * 40;
-        const moveY = (y - 0.5) * 40;
+        orbs.forEach((orb, index) => {
+            const speed = (index + 1) * 30;
+            const offsetX = (x - 0.5) * speed;
+            const offsetY = (y - 0.5) * speed;
 
-        // Parallax blobs
-        blobs.forEach((blob, index) => {
-            const speed = (index + 1) * 0.3;
-            blob.style.transform = `translate(${moveX * speed}px, ${moveY * speed}px)`;
+            orb.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
         });
-
-        // Parallax grid
-        if (gridBg) {
-            gridBg.style.transform = `translate(${moveX * 0.1}px, ${moveY * 0.1}px)`;
-        }
     });
 }
 
@@ -321,6 +308,8 @@ function initParallax() {
 // ENHANCED 3D TILT ON CARDS
 // ===========================================
 optionCards.forEach(card => {
+    const cardInner = card.querySelector('.card-inner');
+
     card.addEventListener('mousemove', (e) => {
         const rect = card.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -329,48 +318,51 @@ optionCards.forEach(card => {
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
 
-        const deltaX = (x - centerX) / centerX;
-        const deltaY = (y - centerY) / centerY;
+        const rotateX = (y - centerY) / 10;
+        const rotateY = (centerX - x) / 10;
 
-        const moveX = deltaX * 15;
-        const moveY = deltaY * 15;
-        const rotateX = deltaY * -10;
-        const rotateY = deltaX * 10;
-
-        card.style.transform = `
-            translateY(-20px)
-            scale(1.08)
-            translateX(${moveX}px)
-            translateY(${moveY}px)
-            rotateX(${rotateX}deg)
-            rotateY(${rotateY}deg)
-            translateZ(80px)
-        `;
-
-        // Update card glow position
-        const glowEffect = card.querySelector('.card-glow-effect');
-        if (glowEffect) {
-            const glowX = (x / rect.width) * 100;
-            const glowY = (y / rect.height) * 100;
-            glowEffect.style.background = `radial-gradient(
-                circle at ${glowX}% ${glowY}%,
-                rgba(102, 126, 234, 0.6),
-                transparent 70%
-            )`;
+        if (cardInner) {
+            cardInner.style.transform = `
+                perspective(1000px)
+                rotateX(${rotateX}deg)
+                rotateY(${rotateY}deg)
+                translateZ(20px)
+                scale3d(1.02, 1.02, 1.02)
+            `;
         }
     });
 
     card.addEventListener('mouseleave', () => {
-        card.style.transform = '';
-
-        const glowEffect = card.querySelector('.card-glow-effect');
-        if (glowEffect) {
-            glowEffect.style.background = `radial-gradient(
-                circle at center,
-                rgba(102, 126, 234, 0.4),
-                transparent 70%
-            )`;
+        if (cardInner) {
+            cardInner.style.transform = `
+                perspective(1000px)
+                rotateX(0deg)
+                rotateY(0deg)
+                translateZ(0px)
+                scale3d(1, 1, 1)
+            `;
         }
+    });
+
+    // Ripple effect on click
+    card.addEventListener('click', function(event) {
+        const ripple = document.createElement('div');
+        ripple.style.position = 'absolute';
+        ripple.style.width = '20px';
+        ripple.style.height = '20px';
+        ripple.style.borderRadius = '50%';
+        ripple.style.background = 'rgba(139, 92, 246, 0.5)';
+        ripple.style.transform = 'scale(0)';
+        ripple.style.animation = 'rippleEffect 0.6s ease-out';
+        ripple.style.pointerEvents = 'none';
+
+        const rect = card.getBoundingClientRect();
+        ripple.style.left = event.clientX - rect.left + 'px';
+        ripple.style.top = event.clientY - rect.top + 'px';
+
+        card.appendChild(ripple);
+
+        setTimeout(() => ripple.remove(), 600);
     });
 });
 
@@ -434,10 +426,13 @@ function init() {
 function transitionToActivityScreen() {
     welcomeScreen.classList.remove('active');
     setTimeout(() => {
-        greeting.textContent = `Hey ${userName}`;
+        const greetingTitle = document.querySelector('.greeting-title');
+        if (greetingTitle) {
+            greetingTitle.textContent = `Hey ${userName}`;
+        }
         activityScreen.classList.add('active');
 
-        // Start clock and parallax when entering activity screen
+        // Start clock, parallax, and floating orbs
         startDigitalClock();
         parallaxActive = true;
     }, 400);
@@ -602,7 +597,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // INITIALIZE APP
 // ===========================================
 init();
-initParallax();
+initFloatingOrbs();
 
 // Optional: View all records in console
 console.log('%c TRIO Time Tracking ', 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 16px; padding: 10px; border-radius: 5px;');
