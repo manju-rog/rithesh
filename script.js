@@ -3,10 +3,22 @@ let userName = '';
 let currentActivity = '';
 let checkInTime = null;
 let timerInterval = null;
+let clockInterval = null;
 
 // Cursor elements
 const cursor = document.querySelector('.cursor');
 const cursorFollower = document.querySelector('.cursor-follower');
+
+// Clock elements
+const clockHours = document.getElementById('clock-hours');
+const clockMinutes = document.getElementById('clock-minutes');
+const clockSeconds = document.getElementById('clock-seconds');
+const clockDate = document.getElementById('clock-date');
+
+// Previous clock values for flip animation
+let prevClockSeconds = '00';
+let prevClockMinutes = '00';
+let prevClockHours = '00';
 
 // Screen elements
 const welcomeScreen = document.getElementById('welcomeScreen');
@@ -81,41 +93,6 @@ interactiveElements.forEach(el => {
     });
 });
 
-// ===========================================
-// MAGNETIC EFFECT ON CARDS
-// ===========================================
-optionCards.forEach(card => {
-    card.addEventListener('mousemove', (e) => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-
-        const deltaX = (x - centerX) / centerX;
-        const deltaY = (y - centerY) / centerY;
-
-        const moveX = deltaX * 10;
-        const moveY = deltaY * 10;
-        const rotateX = deltaY * 5;
-        const rotateY = deltaX * 5;
-
-        card.style.transform = `
-            translateY(-12px)
-            scale(1.05)
-            translateX(${moveX}px)
-            translateY(${moveY}px)
-            rotateX(${-rotateX}deg)
-            rotateY(${rotateY}deg)
-            translateZ(50px)
-        `;
-    });
-
-    card.addEventListener('mouseleave', () => {
-        card.style.transform = '';
-    });
-});
 
 // Magnetic effect on checkout button
 checkoutBtn.addEventListener('mousemove', (e) => {
@@ -258,6 +235,146 @@ function animateParticles() {
 animateParticles();
 
 // ===========================================
+// DIGITAL CLOCK WITH ANIMATIONS
+// ===========================================
+function updateDigitalClock() {
+    const now = new Date();
+
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+
+    // Apply flip animation when values change
+    if (seconds !== prevClockSeconds && clockSeconds) {
+        clockSeconds.classList.add('flip-animation');
+        setTimeout(() => clockSeconds.classList.remove('flip-animation'), 400);
+        prevClockSeconds = seconds;
+        clockSeconds.textContent = seconds;
+    }
+
+    if (minutes !== prevClockMinutes && clockMinutes) {
+        clockMinutes.classList.add('flip-animation');
+        setTimeout(() => clockMinutes.classList.remove('flip-animation'), 400);
+        prevClockMinutes = minutes;
+        clockMinutes.textContent = minutes;
+    }
+
+    if (hours !== prevClockHours && clockHours) {
+        clockHours.classList.add('flip-animation');
+        setTimeout(() => clockHours.classList.remove('flip-animation'), 400);
+        prevClockHours = hours;
+        clockHours.textContent = hours;
+    }
+
+    // Update date
+    if (clockDate) {
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        clockDate.textContent = now.toLocaleDateString('en-US', options);
+    }
+}
+
+function startDigitalClock() {
+    updateDigitalClock();
+    clockInterval = setInterval(updateDigitalClock, 1000);
+}
+
+function stopDigitalClock() {
+    if (clockInterval) {
+        clearInterval(clockInterval);
+        clockInterval = null;
+    }
+}
+
+// ===========================================
+// ADVANCED PARALLAX MOUSE TRACKING
+// ===========================================
+let parallaxActive = false;
+
+function initParallax() {
+    const activityScreenEl = document.getElementById('activityScreen');
+    const blobs = document.querySelectorAll('.blob');
+    const gridBg = document.querySelector('.grid-background');
+
+    activityScreenEl.addEventListener('mousemove', (e) => {
+        if (!parallaxActive) return;
+
+        const x = e.clientX / window.innerWidth;
+        const y = e.clientY / window.innerHeight;
+
+        const moveX = (x - 0.5) * 40;
+        const moveY = (y - 0.5) * 40;
+
+        // Parallax blobs
+        blobs.forEach((blob, index) => {
+            const speed = (index + 1) * 0.3;
+            blob.style.transform = `translate(${moveX * speed}px, ${moveY * speed}px)`;
+        });
+
+        // Parallax grid
+        if (gridBg) {
+            gridBg.style.transform = `translate(${moveX * 0.1}px, ${moveY * 0.1}px)`;
+        }
+    });
+}
+
+// ===========================================
+// ENHANCED 3D TILT ON CARDS
+// ===========================================
+optionCards.forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        const deltaX = (x - centerX) / centerX;
+        const deltaY = (y - centerY) / centerY;
+
+        const moveX = deltaX * 15;
+        const moveY = deltaY * 15;
+        const rotateX = deltaY * -10;
+        const rotateY = deltaX * 10;
+
+        card.style.transform = `
+            translateY(-20px)
+            scale(1.08)
+            translateX(${moveX}px)
+            translateY(${moveY}px)
+            rotateX(${rotateX}deg)
+            rotateY(${rotateY}deg)
+            translateZ(80px)
+        `;
+
+        // Update card glow position
+        const glowEffect = card.querySelector('.card-glow-effect');
+        if (glowEffect) {
+            const glowX = (x / rect.width) * 100;
+            const glowY = (y / rect.height) * 100;
+            glowEffect.style.background = `radial-gradient(
+                circle at ${glowX}% ${glowY}%,
+                rgba(102, 126, 234, 0.6),
+                transparent 70%
+            )`;
+        }
+    });
+
+    card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+
+        const glowEffect = card.querySelector('.card-glow-effect');
+        if (glowEffect) {
+            glowEffect.style.background = `radial-gradient(
+                circle at center,
+                rgba(102, 126, 234, 0.4),
+                transparent 70%
+            )`;
+        }
+    });
+});
+
+// ===========================================
 // MAIN APP INITIALIZATION
 // ===========================================
 function init() {
@@ -319,11 +436,20 @@ function transitionToActivityScreen() {
     setTimeout(() => {
         greeting.textContent = `Hey ${userName}`;
         activityScreen.classList.add('active');
+
+        // Start clock and parallax when entering activity screen
+        startDigitalClock();
+        parallaxActive = true;
     }, 400);
 }
 
 function transitionToTimerScreen() {
     activityScreen.classList.remove('active');
+
+    // Stop clock and parallax when leaving activity screen
+    stopDigitalClock();
+    parallaxActive = false;
+
     setTimeout(() => {
         activityName.textContent = currentActivity;
         timerScreen.classList.add('active');
@@ -476,6 +602,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // INITIALIZE APP
 // ===========================================
 init();
+initParallax();
 
 // Optional: View all records in console
 console.log('%c TRIO Time Tracking ', 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 16px; padding: 10px; border-radius: 5px;');
