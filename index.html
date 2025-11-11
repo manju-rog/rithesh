@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRIO - Time Tracking</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div id="welcomeScreen" class="screen active">
+            <div class="welcome-text">
+                <span class="word" data-word="WELCOME">WELCOME</span>
+                <span class="word" data-word="TO">TO</span>
+                <span class="word" data-word="TRIO">TRIO</span>
+            </div>
+            <p class="enter-name-text">please enter your name</p>
+            <input type="text" id="nameInput" class="invisible-input" placeholder="" autocomplete="off" maxlength="30">
+            <div class="input-indicator"></div>
+        </div>
+
+        <!-- Activity Selection Screen -->
+        <div id="activityScreen" class="screen">
+            <h1 class="greeting"></h1>
+            <p class="subtext">What would you like to do today?</p>
+            <div class="options-grid">
+                <div class="option-card" data-activity="University/Advisory">
+                    <div class="option-icon">01</div>
+                    <div class="option-label">University/Advisory</div>
+                </div>
+                <div class="option-card" data-activity="Tutoring">
+                    <div class="option-icon">02</div>
+                    <div class="option-label">Tutoring</div>
+                </div>
+                <div class="option-card" data-activity="Study">
+                    <div class="option-icon">03</div>
+                    <div class="option-label">Study</div>
+                </div>
+                <div class="option-card" data-activity="FAFSA Resources/Assistance">
+                    <div class="option-icon">04</div>
+                    <div class="option-label">FAFSA Resources/Assistance</div>
+                </div>
+                <div class="option-card" data-activity="Workshop">
+                    <div class="option-icon">05</div>
+                    <div class="option-label">Workshop</div>
+                </div>
+                <div class="option-card" data-activity="Event">
+                    <div class="option-icon">06</div>
+                    <div class="option-label">Event</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timer Screen -->
+        <div id="timerScreen" class="screen">
+            <div class="timer-container">
+                <div class="activity-name"></div>
+                <div class="timer-display">
+                    <span class="time-value" id="hours">00</span>
+                    <span class="time-separator">:</span>
+                    <span class="time-value" id="minutes">00</span>
+                    <span class="time-separator">:</span>
+                    <span class="time-value" id="seconds">00</span>
+                </div>
+                <div class="timer-label">Time Elapsed</div>
+                <button id="checkoutBtn" class="checkout-btn">
+                    <span>Check Out</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
