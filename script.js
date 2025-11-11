@@ -5,14 +5,9 @@ let checkInTime = null;
 let timerInterval = null;
 let clockInterval = null;
 
-// Cursor elements
-const cursor = document.querySelector('.cursor');
-const cursorFollower = document.querySelector('.cursor-follower');
-
 // Clock elements
 const timeDisplay = document.getElementById('timeDisplay');
 const dateDisplay = document.getElementById('dateDisplay');
-const clockParticles = document.getElementById('clockParticles');
 
 // Screen elements
 const welcomeScreen = document.getElementById('welcomeScreen');
@@ -21,8 +16,6 @@ const timerScreen = document.getElementById('timerScreen');
 
 // Input elements
 const nameInput = document.getElementById('nameInput');
-const enterNameText = document.querySelector('.enter-name-text');
-const greeting = document.querySelector('.greeting');
 const optionCards = document.querySelectorAll('.option-card');
 const activityName = document.querySelector('.activity-name');
 const checkoutBtn = document.getElementById('checkoutBtn');
@@ -32,204 +25,8 @@ const hoursDisplay = document.getElementById('hours');
 const minutesDisplay = document.getElementById('minutes');
 const secondsDisplay = document.getElementById('seconds');
 
-// Previous time values for flip animation
-let prevSeconds = '00';
-let prevMinutes = '00';
-let prevHours = '00';
-
 // ===========================================
-// CUSTOM CURSOR
-// ===========================================
-let mouseX = 0;
-let mouseY = 0;
-let cursorX = 0;
-let cursorY = 0;
-let followerX = 0;
-let followerY = 0;
-
-document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-});
-
-// Smooth cursor animation using requestAnimationFrame
-function animateCursor() {
-    // Lerp (linear interpolation) for smooth following
-    const speed = 0.2;
-    const followerSpeed = 0.1;
-
-    cursorX += (mouseX - cursorX) * speed;
-    cursorY += (mouseY - cursorY) * speed;
-
-    followerX += (mouseX - followerX) * followerSpeed;
-    followerY += (mouseY - followerY) * followerSpeed;
-
-    cursor.style.transform = `translate(${cursorX - 6}px, ${cursorY - 6}px)`;
-    cursorFollower.style.transform = `translate(${followerX - 20}px, ${followerY - 20}px)`;
-
-    requestAnimationFrame(animateCursor);
-}
-animateCursor();
-
-// Hover effects for cursor
-const interactiveElements = [
-    ...optionCards,
-    checkoutBtn,
-    nameInput
-];
-
-interactiveElements.forEach(el => {
-    el.addEventListener('mouseenter', () => {
-        document.body.classList.add('cursor-hover');
-    });
-    el.addEventListener('mouseleave', () => {
-        document.body.classList.remove('cursor-hover');
-    });
-});
-
-
-// Magnetic effect on checkout button
-checkoutBtn.addEventListener('mousemove', (e) => {
-    const rect = checkoutBtn.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-
-    const deltaX = (x - centerX) / centerX;
-    const deltaY = (y - centerY) / centerY;
-
-    const moveX = deltaX * 8;
-    const moveY = deltaY * 8;
-
-    checkoutBtn.style.transform = `
-        scale(1.08)
-        translateY(-4px)
-        translateX(${moveX}px)
-        translateY(${moveY - 4}px)
-    `;
-});
-
-checkoutBtn.addEventListener('mouseleave', () => {
-    checkoutBtn.style.transform = '';
-});
-
-// ===========================================
-// RIPPLE EFFECT
-// ===========================================
-function createRipple(e, element) {
-    const ripple = document.createElement('span');
-    ripple.classList.add('ripple');
-
-    const rect = element.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    const x = e.clientX - rect.left - size / 2;
-    const y = e.clientY - rect.top - size / 2;
-
-    ripple.style.width = ripple.style.height = `${size}px`;
-    ripple.style.left = `${x}px`;
-    ripple.style.top = `${y}px`;
-
-    element.appendChild(ripple);
-
-    setTimeout(() => {
-        ripple.remove();
-    }, 600);
-}
-
-optionCards.forEach(card => {
-    card.addEventListener('click', (e) => {
-        createRipple(e, card);
-    });
-});
-
-checkoutBtn.addEventListener('click', (e) => {
-    createRipple(e, checkoutBtn);
-});
-
-// ===========================================
-// PARTICLE BACKGROUND
-// ===========================================
-const canvas = document.getElementById('particleCanvas');
-const ctx = canvas.getContext('2d');
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-});
-
-class Particle {
-    constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 2 + 0.5;
-        this.speedX = Math.random() * 0.5 - 0.25;
-        this.speedY = Math.random() * 0.5 - 0.25;
-        this.opacity = Math.random() * 0.5 + 0.2;
-    }
-
-    update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
-
-        if (this.x > canvas.width) this.x = 0;
-        if (this.x < 0) this.x = canvas.width;
-        if (this.y > canvas.height) this.y = 0;
-        if (this.y < 0) this.y = canvas.height;
-    }
-
-    draw() {
-        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-    }
-}
-
-const particlesArray = [];
-const numberOfParticles = 100;
-
-for (let i = 0; i < numberOfParticles; i++) {
-    particlesArray.push(new Particle());
-}
-
-function animateParticles() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    particlesArray.forEach(particle => {
-        particle.update();
-        particle.draw();
-    });
-
-    // Draw connections between nearby particles
-    for (let i = 0; i < particlesArray.length; i++) {
-        for (let j = i + 1; j < particlesArray.length; j++) {
-            const dx = particlesArray[i].x - particlesArray[j].x;
-            const dy = particlesArray[i].y - particlesArray[j].y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance < 150) {
-                ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 * (1 - distance / 150)})`;
-                ctx.lineWidth = 0.5;
-                ctx.beginPath();
-                ctx.moveTo(particlesArray[i].x, particlesArray[i].y);
-                ctx.lineTo(particlesArray[j].x, particlesArray[j].y);
-                ctx.stroke();
-            }
-        }
-    }
-
-    requestAnimationFrame(animateParticles);
-}
-
-animateParticles();
-
-// ===========================================
-// DIGITAL CLOCK WITH PREMIUM ANIMATIONS
+// DIGITAL CLOCK
 // ===========================================
 function updateDigitalClock() {
     const now = new Date();
@@ -247,29 +44,8 @@ function updateDigitalClock() {
     }
 }
 
-function initClockParticles() {
-    if (!clockParticles) return;
-
-    for (let i = 0; i < 8; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'clock-particle';
-
-        const angle = (i / 8) * Math.PI * 2;
-        const distance = 60;
-        const x = Math.cos(angle) * distance;
-        const y = Math.sin(angle) * distance;
-
-        particle.style.setProperty('--x', `${x}px`);
-        particle.style.setProperty('--y', `${y}px`);
-        particle.style.animationDelay = `${i * 0.5}s`;
-
-        clockParticles.appendChild(particle);
-    }
-}
-
 function startDigitalClock() {
     updateDigitalClock();
-    initClockParticles();
     clockInterval = setInterval(updateDigitalClock, 1000);
 }
 
@@ -281,101 +57,15 @@ function stopDigitalClock() {
 }
 
 // ===========================================
-// FLOATING ORBS PARALLAX
-// ===========================================
-let parallaxActive = false;
-
-function initFloatingOrbs() {
-    const orbs = document.querySelectorAll('.floating-orb');
-
-    document.addEventListener('mousemove', (e) => {
-        if (!parallaxActive) return;
-
-        const x = e.clientX / window.innerWidth;
-        const y = e.clientY / window.innerHeight;
-
-        orbs.forEach((orb, index) => {
-            const speed = (index + 1) * 30;
-            const offsetX = (x - 0.5) * speed;
-            const offsetY = (y - 0.5) * speed;
-
-            orb.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-        });
-    });
-}
-
-// ===========================================
-// ENHANCED 3D TILT ON CARDS
-// ===========================================
-optionCards.forEach(card => {
-    const cardInner = card.querySelector('.card-inner');
-
-    card.addEventListener('mousemove', (e) => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-
-        const rotateX = (y - centerY) / 10;
-        const rotateY = (centerX - x) / 10;
-
-        if (cardInner) {
-            cardInner.style.transform = `
-                perspective(1000px)
-                rotateX(${rotateX}deg)
-                rotateY(${rotateY}deg)
-                translateZ(20px)
-                scale3d(1.02, 1.02, 1.02)
-            `;
-        }
-    });
-
-    card.addEventListener('mouseleave', () => {
-        if (cardInner) {
-            cardInner.style.transform = `
-                perspective(1000px)
-                rotateX(0deg)
-                rotateY(0deg)
-                translateZ(0px)
-                scale3d(1, 1, 1)
-            `;
-        }
-    });
-
-    // Ripple effect on click
-    card.addEventListener('click', function(event) {
-        const ripple = document.createElement('div');
-        ripple.style.position = 'absolute';
-        ripple.style.width = '20px';
-        ripple.style.height = '20px';
-        ripple.style.borderRadius = '50%';
-        ripple.style.background = 'rgba(139, 92, 246, 0.5)';
-        ripple.style.transform = 'scale(0)';
-        ripple.style.animation = 'rippleEffect 0.6s ease-out';
-        ripple.style.pointerEvents = 'none';
-
-        const rect = card.getBoundingClientRect();
-        ripple.style.left = event.clientX - rect.left + 'px';
-        ripple.style.top = event.clientY - rect.top + 'px';
-
-        card.appendChild(ripple);
-
-        setTimeout(() => ripple.remove(), 600);
-    });
-});
-
-// ===========================================
 // MAIN APP INITIALIZATION
 // ===========================================
 function init() {
-    // Focus on name input after welcome animation
+    // Focus on name input after animation
     setTimeout(() => {
         nameInput.focus();
-    }, 2000);
+    }, 1500);
 
-    // Handle name input - hide text when typing
+    // Handle name input
     nameInput.addEventListener('input', () => {
         const enterText = document.querySelector('.enter-name-text');
         if (nameInput.value.length > 0) {
@@ -398,7 +88,7 @@ function init() {
         }
     });
 
-    // Handle activity selection with enhanced feedback
+    // Handle activity selection
     optionCards.forEach(card => {
         card.addEventListener('click', () => {
             // Remove selection from all cards
@@ -410,14 +100,25 @@ function init() {
             // Small delay to show selection before transition
             setTimeout(() => {
                 currentActivity = card.dataset.activity;
-                startTimer();
-                transitionToTimerScreen();
+
+                // Save session data to localStorage
+                const sessionData = {
+                    userName: userName,
+                    activity: currentActivity,
+                    startTime: new Date().toISOString()
+                };
+                localStorage.setItem('trioSession', JSON.stringify(sessionData));
+
+                // Redirect to session active page
+                window.location.href = 'session-active.html';
             }, 300);
         });
     });
 
     // Handle checkout
-    checkoutBtn.addEventListener('click', handleCheckout);
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', handleCheckout);
+    }
 }
 
 // ===========================================
@@ -431,24 +132,18 @@ function transitionToActivityScreen() {
             greetingTitle.textContent = `Hey ${userName}`;
         }
         activityScreen.classList.add('active');
-
-        // Start clock, parallax, and floating orbs
         startDigitalClock();
-        parallaxActive = true;
-    }, 400);
+    }, 600);
 }
 
 function transitionToTimerScreen() {
     activityScreen.classList.remove('active');
-
-    // Stop clock and parallax when leaving activity screen
     stopDigitalClock();
-    parallaxActive = false;
 
     setTimeout(() => {
         activityName.textContent = currentActivity;
         timerScreen.classList.add('active');
-    }, 400);
+    }, 600);
 }
 
 function transitionToWelcome() {
@@ -456,11 +151,11 @@ function transitionToWelcome() {
     setTimeout(() => {
         resetApp();
         welcomeScreen.classList.add('active');
-    }, 400);
+    }, 600);
 }
 
 // ===========================================
-// TIMER FUNCTIONS WITH FLIP ANIMATION
+// TIMER FUNCTIONS
 // ===========================================
 function startTimer() {
     checkInTime = Date.now();
@@ -478,28 +173,9 @@ function updateTimerDisplay() {
     const minutesStr = String(minutes).padStart(2, '0');
     const secondsStr = String(seconds).padStart(2, '0');
 
-    // Apply flip animation when value changes
-    if (secondsStr !== prevSeconds) {
-        secondsDisplay.classList.add('flip');
-        setTimeout(() => secondsDisplay.classList.remove('flip'), 400);
-        prevSeconds = secondsStr;
-    }
-
-    if (minutesStr !== prevMinutes) {
-        minutesDisplay.classList.add('flip');
-        setTimeout(() => minutesDisplay.classList.remove('flip'), 400);
-        prevMinutes = minutesStr;
-    }
-
-    if (hoursStr !== prevHours) {
-        hoursDisplay.classList.add('flip');
-        setTimeout(() => hoursDisplay.classList.remove('flip'), 400);
-        prevHours = hoursStr;
-    }
-
-    hoursDisplay.textContent = hoursStr;
-    minutesDisplay.textContent = minutesStr;
-    secondsDisplay.textContent = secondsStr;
+    if (hoursDisplay) hoursDisplay.textContent = hoursStr;
+    if (minutesDisplay) minutesDisplay.textContent = minutesStr;
+    if (secondsDisplay) secondsDisplay.textContent = secondsStr;
 }
 
 function stopTimer() {
@@ -529,20 +205,15 @@ function handleCheckout() {
     stopTimer();
 
     // Show completion animation
-    const originalText = checkoutBtn.innerHTML;
-    checkoutBtn.innerHTML = '<span>Checked Out ✓</span>';
-    checkoutBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-    checkoutBtn.style.transform = 'scale(1.1)';
+    if (checkoutBtn) {
+        const originalText = checkoutBtn.innerHTML;
+        checkoutBtn.innerHTML = '<span>Checked Out ✓</span>';
 
-    setTimeout(() => {
-        checkoutBtn.style.transform = 'scale(1)';
-    }, 200);
-
-    setTimeout(() => {
-        checkoutBtn.innerHTML = originalText;
-        checkoutBtn.style.background = '';
-        transitionToWelcome();
-    }, 1500);
+        setTimeout(() => {
+            checkoutBtn.innerHTML = originalText;
+            transitionToWelcome();
+        }, 1500);
+    }
 }
 
 function formatDuration(ms) {
@@ -564,12 +235,10 @@ function resetApp() {
     currentActivity = '';
     checkInTime = null;
     nameInput.value = '';
-    hoursDisplay.textContent = '00';
-    minutesDisplay.textContent = '00';
-    secondsDisplay.textContent = '00';
-    prevSeconds = '00';
-    prevMinutes = '00';
-    prevHours = '00';
+
+    if (hoursDisplay) hoursDisplay.textContent = '00';
+    if (minutesDisplay) minutesDisplay.textContent = '00';
+    if (secondsDisplay) secondsDisplay.textContent = '00';
 
     // Remove selection from all cards
     optionCards.forEach(card => card.classList.remove('selected'));
@@ -578,36 +247,8 @@ function resetApp() {
 }
 
 // ===========================================
-// SMOOTH SCROLL BEHAVIOR
-// ===========================================
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
-    });
-});
-
-// ===========================================
 // INITIALIZE APP
 // ===========================================
 init();
-initFloatingOrbs();
 
-// Optional: View all records in console
-console.log('%c TRIO Time Tracking ', 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 16px; padding: 10px; border-radius: 5px;');
-console.log('To view all records, run: JSON.parse(localStorage.getItem("trioRecords"))');
-
-// Performance monitoring (development only)
-if (window.performance) {
-    window.addEventListener('load', () => {
-        const perfData = window.performance.timing;
-        const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
-        console.log(`Page load time: ${pageLoadTime}ms`);
-    });
-}
+console.log('TRIO Time Tracking - To view all records, run: JSON.parse(localStorage.getItem("trioRecords"))');
